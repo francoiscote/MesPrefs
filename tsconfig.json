@@ -2,8 +2,10 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ES2020",
-    "lib": ["ES2020", "DOM"],
-    "types": ["@cloudflare/workers-types"],
+    "lib": [
+      "ES2020",
+      "DOM"
+    ],
     "declaration": true,
     "outDir": "./dist",
     "rootDir": "./src",
@@ -14,8 +16,18 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "allowJs": false,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
 }
