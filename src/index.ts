@@ -1,6 +1,5 @@
 import { Hono } from 'hono'
-import { Env } from './lib/types'
-import { log } from './lib/logger'
+import { logger } from 'hono/logger'
 import { bearerAuth } from './middleware/auth'
 import { rateLimit } from './middleware/rateLimit'
 import { healthHandler } from './routes/health'
@@ -9,38 +8,7 @@ import { addHandler } from './routes/add'
 import { removeHandler } from './routes/remove'
 
 const app = new Hono<{ Bindings: Env }>()
-
-// Logging middleware (all routes)
-app.use('*', async (ctx, next) => {
-  const startTime = Date.now()
-  const route = ctx.req.path
-  const method = ctx.req.method
-
-  try {
-    await next()
-    const duration = Date.now() - startTime
-    log({
-      timestamp: new Date().toISOString(),
-      level: 'info',
-      route,
-      method,
-      status: ctx.res.status,
-      duration,
-    })
-  } catch (error) {
-    const duration = Date.now() - startTime
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    log({
-      timestamp: new Date().toISOString(),
-      level: 'error',
-      route,
-      method,
-      duration,
-      error: message,
-    })
-    throw error
-  }
-})
+app.use(logger())
 
 // Public routes
 app.get('/health', healthHandler)

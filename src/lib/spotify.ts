@@ -1,12 +1,8 @@
-import { Env, SpotifyTrack, CurrentlyPlayingResponse, SpotifyTokenResponse, PlaylistTracksResponse } from './types'
+import { SpotifyTrack, CurrentlyPlayingResponse, SpotifyTokenResponse, PlaylistTracksResponse } from './types'
 
-let cachedAccessToken = ''
-let cachedTokenExpiry = 0
-
-async function refreshAccessToken(env: Env): Promise<string> {
+async function fetchAccessToken(env: Env): Promise<string> {
   const clientId = env.SPOTIFY_CLIENT_ID
   const clientSecret = env.SPOTIFY_CLIENT_SECRET
-  const refreshToken = env.SPOTIFY_REFRESH_TOKEN
 
   const auth = btoa(`${clientId}:${clientSecret}`)
 
@@ -14,26 +10,38 @@ async function refreshAccessToken(env: Env): Promise<string> {
     method: 'POST',
     headers: {
       'Authorization': `Basic ${auth}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`,
+    body: "grant_type=client_credentials",
   })
 
   if (!response.ok) {
-    throw new Error(`Token refresh failed: ${response.status}`)
+    throw new Error(`Access Token request failed: ${response.status}`)
   }
 
   const data = (await response.json()) as SpotifyTokenResponse
-  cachedAccessToken = data.access_token
-  cachedTokenExpiry = Date.now() + data.expires_in * 1000
-  return cachedAccessToken
+  env.MESPREFS?.put("spotify_accessToken", data.access_token)
+  env.MESPREFS?.put("spotify_refreshToken", data.refresh_token)
+  
+  const expiry = Date.now() + data.expires_in * 1000
+  env.MESPREFS?.put("spotify_accessToken_expiry", expiry.toString(10));
+  return data.access_token
 }
 
 async function getAccessToken(env: Env): Promise<string> {
-  if (cachedAccessToken && cachedTokenExpiry > Date.now()) {
-    return cachedAccessToken
+  const cachedAccessToken = await env.MESPREFS?.get('spotify_accessToken')
+  const cachedTokenExpiry = await env.MESPREFS?.get('spotify_accessToken_expiry')
+
+  if (!cachedAccessToken || !cachedTokenExpiry) {
+    return fetchAccessToken(env)
   }
-  return refreshAccessToken(env)
+  
+  const expires_in = Number(cachedTokenExpiry) - Date.now()
+  
+  if (expires_in < 1000 * 60 * 5) {
+    return fetchAccessToken(env)
+  }
+
+  return cachedAccessToken
 }
 
 async function spotifyFetch(
@@ -45,14 +53,10 @@ async function spotifyFetch(
   const headers = new Headers(options.headers || {})
   headers.set('Authorization', `Bearer ${token}`)
 
+  console.log("url", url)
+  console.log("token", token)
+  
   let response = await fetch(url, { ...options, headers })
-
-  if (response.status === 401) {
-    const newToken = await refreshAccessToken(env)
-    const newHeaders = new Headers(options.headers || {})
-    newHeaders.set('Authorization', `Bearer ${newToken}`)
-    response = await fetch(url, { ...options, headers: newHeaders })
-  }
 
   return response
 }
@@ -63,10 +67,6 @@ export async function getCurrentlyPlaying(env: Env): Promise<SpotifyTrack | null
     { method: 'GET' },
     env
   )
-
-  if (response.status === 204) {
-    return null
-  }
 
   if (!response.ok) {
     throw new Error(`getCurrentlyPlaying failed: ${response.status}`)

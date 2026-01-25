@@ -1,11 +1,3 @@
-export interface Env {
-  BEARER_TOKEN: string
-  SPOTIFY_CLIENT_ID: string
-  SPOTIFY_CLIENT_SECRET: string
-  SPOTIFY_REFRESH_TOKEN: string
-  SPOTIFY_PLAYLIST_ID: string
-}
-
 export interface SpotifyArtist {
   name: string
 }
@@ -29,6 +21,7 @@ export interface CurrentlyPlayingResponse {
 
 export interface SpotifyTokenResponse {
   access_token: string
+  refresh_token: string
   expires_in: number
   token_type: string
 }
@@ -38,14 +31,4 @@ export interface PlaylistTracksResponse {
     track: SpotifyItem
   }>
   next?: string
-}
-
-export interface LogEntry {
-  timestamp: string
-  level: 'info' | 'error'
-  route: string
-  method: string
-  status?: number
-  duration: number
-  error?: string
 }

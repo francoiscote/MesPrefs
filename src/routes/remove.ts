@@ -1,5 +1,4 @@
 import { Context } from 'hono'
-import { Env } from '../lib/types'
 import { getCurrentlyPlaying, removeTrackFromPlaylist } from '../lib/spotify'
 
 export async function removeHandler(ctx: Context<{ Bindings: Env }>) {
