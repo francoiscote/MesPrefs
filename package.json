@@ -1,0 +1,27 @@
+{
+  "name": "mesprefs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pnpx wrangler dev",
+    "build": "pnpx wrangler build",
+    "deploy": "pnpx wrangler deploy",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
+  },
+  "keywords": [],
+  "author": "François Côté",
+  "license": "MIT",
+  "packageManager": "pnpm@10.27.0",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260124.0",
+    "@vitest/ui": "^2.1.8",
+    "hono": "^4.11.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8",
+    "wrangler": "^4.60.0"
+  }
+}
