@@ -20,5 +20,9 @@
 			"enabled": false,
 			"invocation_logs": true
 		}
+	},
+	"vars": {
+		"SPOTIFY_PLAYLIST_ID": "46tfxxWOU8jPRjasoL3wD8",
+		"SPOTIFY_REDIRECT_URI": "https://mesprefs.francoiscote.net/auth/callback"
 	}
 }
