@@ -1,5 +1,6 @@
 import type { Context } from "hono";
 import { html } from "hono/html";
+import css from "../style.css?inline";
 
 const translations = {
 	en: {
@@ -93,7 +94,7 @@ export async function landingHandler(ctx: Context<{ Bindings: Env }>) {
           href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap"
           rel="stylesheet"
         />
-        <link rel="stylesheet" href="/src/style.css" />
+        <style>${css}</style>
       </head>
       <body class="gradient-bg min-h-screen">
         <!-- Top nav -->
