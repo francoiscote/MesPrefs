@@ -1,17 +1,25 @@
-import { SpotifyTrack, CurrentlyPlayingResponse, SpotifyTokenResponse, PlaylistTracksResponse } from './types'
+import { SpotifyTrack, CurrentlyPlayingResponse, SpotifyTokenResponse, PlaylistTracksResponse, PlaylistsResponse } from './types'
 
 async function fetchAccessToken(env: Env): Promise<string> {
-  const clientId = env.SPOTIFY_CLIENT_ID
-  const clientSecret = env.SPOTIFY_CLIENT_SECRET
+  // Get refresh token from KV first, fallback to env var
+  const refreshToken = await env.MESPREFS?.get('spotify_refreshToken') || env.SPOTIFY_REFRESH_TOKEN
 
-  const auth = btoa(`${clientId}:${clientSecret}`)
+  if (!refreshToken) {
+    throw new Error('No refresh token available. Complete OAuth flow at /auth/login')
+  }
+
+  const auth = btoa(`${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`)
 
   const response = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
     headers: {
       'Authorization': `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: "grant_type=client_credentials",
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+    }),
   })
 
   if (!response.ok) {
@@ -19,11 +27,15 @@ async function fetchAccessToken(env: Env): Promise<string> {
   }
 
   const data = (await response.json()) as SpotifyTokenResponse
-  env.MESPREFS?.put("spotify_accessToken", data.access_token)
-  env.MESPREFS?.put("spotify_refreshToken", data.refresh_token)
-  
+  await env.MESPREFS?.put('spotify_accessToken', data.access_token)
+
+  // Handle token rotation - Spotify may return new refresh token
+  if (data.refresh_token) {
+    await env.MESPREFS?.put('spotify_refreshToken', data.refresh_token)
+  }
+
   const expiry = Date.now() + data.expires_in * 1000
-  env.MESPREFS?.put("spotify_accessToken_expiry", expiry.toString(10));
+  await env.MESPREFS?.put('spotify_accessToken_expiry', expiry.toString(10))
   return data.access_token
 }
 
@@ -68,6 +80,11 @@ export async function getCurrentlyPlaying(env: Env): Promise<SpotifyTrack | null
     env
   )
 
+  // 204 = nothing playing
+  if (response.status === 204) {
+    return null
+  }
+
   if (!response.ok) {
     throw new Error(`getCurrentlyPlaying failed: ${response.status}`)
   }
@@ -83,6 +100,31 @@ export async function getCurrentlyPlaying(env: Env): Promise<SpotifyTrack | null
     name: data.item.name || 'Unknown',
     artists: data.item.artists || [],
   }
+}
+
+export async function getPlaylists(env: Env): Promise<SpotifyPlaylists | null> {
+  const response = await spotifyFetch(
+    'https://api.spotify.com/v1/me/playlists',
+    { method: 'GET' },
+    env
+  )
+
+  // 204 = nothing playing
+  if (response.status === 204) {
+    return null
+  }
+
+  if (!response.ok) {
+    throw new Error(`getPlaylists failed: ${response.status}`)
+  }
+
+  const data = (await response.json()) as PlaylistsResponse
+
+  if (data.total == 0) {
+    return null
+  }
+
+  return data
 }
 
 export async function checkTrackInPlaylist(

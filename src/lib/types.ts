@@ -14,6 +14,11 @@ export interface SpotifyItem {
   artists?: SpotifyArtist[]
 }
 
+export interface SpotifyPlaylist {
+  uri?: string
+  name?: string
+}
+
 export interface CurrentlyPlayingResponse {
   item: SpotifyItem | null
   is_playing: boolean
@@ -21,7 +26,7 @@ export interface CurrentlyPlayingResponse {
 
 export interface SpotifyTokenResponse {
   access_token: string
-  refresh_token: string
+  refresh_token?: string
   expires_in: number
   token_type: string
 }
@@ -30,5 +35,13 @@ export interface PlaylistTracksResponse {
   items: Array<{
     track: SpotifyItem
   }>
+  next?: string
+}
+
+export interface PlaylistsResponse {
+  items: Array<{
+    track: SpotifyPlaylist
+  }>
+  total: number
   next?: string
 }

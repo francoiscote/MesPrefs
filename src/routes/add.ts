@@ -1,5 +1,4 @@
 import { Context } from 'hono'
-import { Env } from '../lib/types'
 import { getCurrentlyPlaying, checkTrackInPlaylist, addTrackToPlaylist } from '../lib/spotify'
 
 export async function addHandler(ctx: Context<{ Bindings: Env }>) {
