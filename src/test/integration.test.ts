@@ -122,6 +122,53 @@ describe('API Integration Tests', () => {
       expect(data.error).toBe('No track currently playing')
     })
 
+    it('returns 409 when track already in playlist', async () => {
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            access_token: 'token',
+            expires_in: 3600,
+            token_type: 'Bearer',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            item: {
+              uri: 'spotify:track:123',
+              name: 'Test Song',
+              artists: [{ name: 'Test Artist' }],
+            },
+            is_playing: true,
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            access_token: 'token',
+            expires_in: 3600,
+            token_type: 'Bearer',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            items: [{ track: { uri: 'spotify:track:123' } }],
+            next: null,
+          }),
+        })
+
+      const res = await client.add.$post({}, {
+        headers: { Authorization: 'Bearer test-token' },
+      })
+      expect(res.status).toBe(409)
+
+      const data = await res.json()
+      expect(data.error).toBe('Track already in playlist')
+    })
+
   })
 
   describe('Remove endpoint', () => {

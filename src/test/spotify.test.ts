@@ -115,6 +115,115 @@ describe('Spotify service', () => {
   })
 
 
+  describe('checkTrackInPlaylist', () => {
+    it('returns true when track found on first page', async () => {
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            access_token: 'token',
+            expires_in: 3600,
+            token_type: 'Bearer',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            items: [
+              { track: { uri: 'spotify:track:123' } },
+              { track: { uri: 'spotify:track:456' } },
+            ],
+            next: null,
+          }),
+        })
+
+      const result = await checkTrackInPlaylist('spotify:track:123', mockEnv)
+      expect(result).toBe(true)
+    })
+
+    it('returns true when track found on subsequent page', async () => {
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            access_token: 'token',
+            expires_in: 3600,
+            token_type: 'Bearer',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            items: [{ track: { uri: 'spotify:track:other' } }],
+            next: 'https://api.spotify.com/v1/playlists/test/tracks?offset=50',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            access_token: 'token',
+            expires_in: 3600,
+            token_type: 'Bearer',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            items: [{ track: { uri: 'spotify:track:target' } }],
+            next: null,
+          }),
+        })
+
+      const result = await checkTrackInPlaylist('spotify:track:target', mockEnv)
+      expect(result).toBe(true)
+    })
+
+    it('returns false when track not found', async () => {
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            access_token: 'token',
+            expires_in: 3600,
+            token_type: 'Bearer',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            items: [
+              { track: { uri: 'spotify:track:111' } },
+              { track: { uri: 'spotify:track:222' } },
+            ],
+            next: null,
+          }),
+        })
+
+      const result = await checkTrackInPlaylist('spotify:track:notfound', mockEnv)
+      expect(result).toBe(false)
+    })
+
+    it('throws on API error', async () => {
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            access_token: 'token',
+            expires_in: 3600,
+            token_type: 'Bearer',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+        })
+
+      await expect(
+        checkTrackInPlaylist('spotify:track:123', mockEnv)
+      ).rejects.toThrow('checkTrackInPlaylist failed: 500')
+    })
+  })
+
   describe('addTrackToPlaylist', () => {
     it('adds track successfully', async () => {
       global.fetch = vi.fn()
