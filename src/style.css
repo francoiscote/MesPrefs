@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* Custom styles */
+@layer components {
+	.gradient-bg {
+		background: linear-gradient(
+			135deg,
+			oklab(98.22800000000001% -0.00379 0.00148) 30%,
+			oklab(95.138% -0.06947 0.02396) 100%
+		);
+	}
+
+	.bounce-hover:hover {
+		animation: bounce 0.5s;
+	}
+
+	.float {
+		animation: float 3s ease-in-out infinite;
+	}
+}
+
+@keyframes float {
+	0%,
+	100% {
+		transform: translateY(0px);
+	}
+	50% {
+		transform: translateY(-20px);
+	}
+}
+
+@layer theme {
+	body {
+		font-family: "Nunito", sans-serif;
+	}
+}
