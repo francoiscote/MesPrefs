@@ -1,4 +1,4 @@
-import { SpotifyTrack, CurrentlyPlayingResponse, SpotifyTokenResponse, PlaylistTracksResponse, PlaylistsResponse } from './types'
+import { SpotifyError, SpotifyTrack, CurrentlyPlayingResponse, SpotifyTokenResponse, PlaylistTracksResponse, PlaylistsResponse } from './types'
 
 async function fetchAccessToken(env: Env): Promise<string> {
   // Get refresh token from KV first, fallback to env var
@@ -57,6 +57,7 @@ async function getAccessToken(env: Env): Promise<string> {
 }
 
 async function spotifyFetch(
+  methodId: string,
   url: string,
   options: RequestInit,
   env: Env
@@ -64,17 +65,20 @@ async function spotifyFetch(
   const token = await getAccessToken(env)
   const headers = new Headers(options.headers || {})
   headers.set('Authorization', `Bearer ${token}`)
-
-  console.log("url", url)
-  console.log("token", token)
   
   let response = await fetch(url, { ...options, headers })
+
+  if (!response.ok) {
+    const { error } = await response.json<SpotifyError>()
+    throw new Error(`${methodId} failed: ${error.status} - ${error.message}`)
+  }
 
   return response
 }
 
 export async function getCurrentlyPlaying(env: Env): Promise<SpotifyTrack | null> {
   const response = await spotifyFetch(
+    'getCurrentlyPlaying',
     'https://api.spotify.com/v1/me/player/currently-playing',
     { method: 'GET' },
     env
@@ -83,10 +87,6 @@ export async function getCurrentlyPlaying(env: Env): Promise<SpotifyTrack | null
   // 204 = nothing playing
   if (response.status === 204) {
     return null
-  }
-
-  if (!response.ok) {
-    throw new Error(`getCurrentlyPlaying failed: ${response.status}`)
   }
 
   const data = (await response.json()) as CurrentlyPlayingResponse
@@ -104,6 +104,7 @@ export async function getCurrentlyPlaying(env: Env): Promise<SpotifyTrack | null
 
 export async function getPlaylists(env: Env): Promise<SpotifyPlaylists | null> {
   const response = await spotifyFetch(
+    'getPlaylists',
     'https://api.spotify.com/v1/me/playlists',
     { method: 'GET' },
     env
@@ -112,10 +113,6 @@ export async function getPlaylists(env: Env): Promise<SpotifyPlaylists | null> {
   // 204 = nothing playing
   if (response.status === 204) {
     return null
-  }
-
-  if (!response.ok) {
-    throw new Error(`getPlaylists failed: ${response.status}`)
   }
 
   const data = (await response.json()) as PlaylistsResponse
@@ -135,11 +132,7 @@ export async function checkTrackInPlaylist(
   let url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks`
 
   while (url) {
-    const response = await spotifyFetch(url, { method: 'GET' }, env)
-
-    if (!response.ok) {
-      throw new Error(`checkTrackInPlaylist failed: ${response.status}`)
-    }
+    const response = await spotifyFetch('checkTrackInPlaylist', url, { method: 'GET' }, env)
 
     const data = (await response.json()) as PlaylistTracksResponse
 
@@ -155,10 +148,11 @@ export async function checkTrackInPlaylist(
   return false
 }
 
-export async function addTrackToPlaylist(trackUri: string, env: Env): Promise<void> {
+export async function addTrackToPlaylist(trackUri: string, env: Env): Promise<Response> {
   const playlistId = env.SPOTIFY_PLAYLIST_ID
 
-  const response = await spotifyFetch(
+  return await spotifyFetch(
+    'addTrackToPlaylist',
     `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
     {
       method: 'POST',
@@ -169,16 +163,13 @@ export async function addTrackToPlaylist(trackUri: string, env: Env): Promise<vo
     },
     env
   )
-
-  if (!response.ok) {
-    throw new Error(`addTrackToPlaylist failed: ${response.status}`)
-  }
 }
 
-export async function removeTrackFromPlaylist(trackUri: string, env: Env): Promise<void> {
+export async function removeTrackFromPlaylist(trackUri: string, env: Env): Promise<Response> {
   const playlistId = env.SPOTIFY_PLAYLIST_ID
 
-  const response = await spotifyFetch(
+  return await spotifyFetch(
+    'removeTrackFromPlaylist',
     `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
     {
       method: 'DELETE',
@@ -190,15 +181,13 @@ export async function removeTrackFromPlaylist(trackUri: string, env: Env): Promi
     env
   )
 
-  if (!response.ok) {
-    throw new Error(`removeTrackFromPlaylist failed: ${response.status}`)
-  }
 }
 
-export async function startPlayback(env: Env): Promise<void> {
+export async function startPlayback(env: Env): Promise<Response> {
   const playlistId = env.SPOTIFY_PLAYLIST_ID
 
-  const response = await spotifyFetch(
+  return await spotifyFetch(
+    'startPlayback',
     'https://api.spotify.com/v1/me/player/play',
     {
       method: 'PUT',
@@ -209,8 +198,4 @@ export async function startPlayback(env: Env): Promise<void> {
     },
     env
   )
-
-  if (!response.ok) {
-    throw new Error(`startPlayback failed: ${response.status}`)
-  }
 }

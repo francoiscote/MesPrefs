@@ -63,7 +63,7 @@ describe('Spotify service', () => {
           }),
         })
         .mockResolvedValueOnce({
-          ok: false,
+          ok: true,
           status: 204,
         })
 
@@ -217,11 +217,12 @@ describe('Spotify service', () => {
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
+          json: async () => ({ error: {status: "SpotifyErrorCode", message: "Spotify error message"} }),
         })
 
       await expect(
         checkTrackInPlaylist('spotify:track:123', mockEnv)
-      ).rejects.toThrow('checkTrackInPlaylist failed: 500')
+      ).rejects.toThrow('checkTrackInPlaylist failed: SpotifyErrorCode - Spotify error message')
     })
   })
 
@@ -243,7 +244,7 @@ describe('Spotify service', () => {
 
       await expect(
         addTrackToPlaylist('spotify:track:123', mockEnv)
-      ).resolves.toBeUndefined()
+      ).resolves.toBeTruthy()
     })
   })
 
@@ -265,7 +266,7 @@ describe('Spotify service', () => {
 
       await expect(
         removeTrackFromPlaylist('spotify:track:123', mockEnv)
-      ).resolves.toBeUndefined()
+      ).resolves.toBeTruthy()
     })
   })
 
@@ -285,7 +286,9 @@ describe('Spotify service', () => {
           status: 204,
         })
 
-      await expect(startPlayback(mockEnv)).resolves.toBeUndefined()
+      
+      const result = await startPlayback(mockEnv)
+      expect(result).toEqual({ ok: true, status: 204 })
     })
 
     it('throws on API error', async () => {
@@ -301,9 +304,10 @@ describe('Spotify service', () => {
         .mockResolvedValueOnce({
           ok: false,
           status: 403,
+          json: async () => ({ error: {status: "SpotifyErrorCode", message: "Spotify error message"} }),
         })
 
-      await expect(startPlayback(mockEnv)).rejects.toThrow('startPlayback failed: 403')
+      await expect(startPlayback(mockEnv)).rejects.toThrow('startPlayback failed: SpotifyErrorCode - Spotify error message')
     })
   })
 })

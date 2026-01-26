@@ -2,6 +2,7 @@ import { Context } from 'hono'
 import { createSignedState, verifySignedState } from '../lib/crypto'
 
 const SCOPES = [
+  'user-modify-playback-state',
   'user-read-currently-playing',
   'playlist-modify-public',
   'playlist-modify-private',

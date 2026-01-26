@@ -45,3 +45,10 @@ export interface PlaylistsResponse {
   total: number
   next?: string
 }
+
+export interface SpotifyErrorResponse {
+  error: {
+    status: number
+    message: string
+  }
+}

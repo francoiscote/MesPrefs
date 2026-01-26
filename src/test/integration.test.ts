@@ -110,7 +110,7 @@ describe('API Integration Tests', () => {
           }),
         })
         .mockResolvedValueOnce({
-          ok: false,
+          ok: true,
           status: 204,
         })
 
@@ -197,7 +197,7 @@ describe('API Integration Tests', () => {
           }),
         })
         .mockResolvedValueOnce({
-          ok: false,
+          ok: true,
           status: 204,
         })
 
