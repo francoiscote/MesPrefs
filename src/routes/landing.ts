@@ -87,6 +87,7 @@ export async function landingHandler(ctx: Context<{ Bindings: Env }>) {
         </script>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <title>${t.title}</title>
         <style>${html(css)}</style>
       </head>
