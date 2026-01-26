@@ -1,6 +1,6 @@
 # mesprefs - Spotify Playlist Manager
 
-Cloudflare Workers service using Hono to manage Spotify playlists via API. Add/remove currently playing track with Bearer token authentication.
+My son always askes to add/remove the currently playing track to/from his Spotify playlist. I decided to automate this process and it started with this simple API. It runs on a Cloudflare Workers using Hono . 
 
 ## Setup
 
@@ -41,6 +41,7 @@ Server runs on `http://localhost:8787`
 
 **Protected** (require `Authorization: Bearer <token>` header):
 - `GET /current` - Get currently playing track
+- `GET /playlists` - Get all your playlists, useful to get the playlist ID
 - `POST /add` - Add currently playing track to playlist
 - `POST /remove` - Remove currently playing track from playlist
 

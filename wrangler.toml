@@ -6,10 +6,11 @@ compatibility_date = "2024-01-01"
 binding = "MESPREFS"
 id = "fe6dd50fc08947a29fd4fb74a873e3e9"
 
-[env.development]
-vars = { SPOTIFY_PLAYLIST_ID = "", SPOTIFY_REDIRECT_URI = "http://localhost:8787/auth/callback" }
+[[routes]]
+pattern = "mesprefs.francoiscote.net"
+custom_domain = true
 
-[env.production]
-route = "api.mesprefs.com/*"
-zone_id = ""
-vars = { SPOTIFY_PLAYLIST_ID = "", SPOTIFY_REDIRECT_URI = "https://api.mesprefs.com/auth/callback" }
+[observability]
+[observability.logs]
+enabled = false
+invocation_logs = true
