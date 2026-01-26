@@ -1,4 +1,4 @@
-# mesprefs - Spotify Playlist Manager
+# MesPrefs - Add (or remove) what's currently Playing to a specific Spotify playlist
 
 When we listen to music at home, my son always asks to add/remove the currently playing track to/from his Spotify playlist of favorites. I decided to automate this process and it started with this simple little service that runs as a small public API. It runs on a Cloudflare Workers using Hono. At home, I use HomeAssitant to send those calls from a small remote control, and have a lamp and a speaker give confirmation when the track is added/removed.
 
