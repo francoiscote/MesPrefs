@@ -194,3 +194,23 @@ export async function removeTrackFromPlaylist(trackUri: string, env: Env): Promi
     throw new Error(`removeTrackFromPlaylist failed: ${response.status}`)
   }
 }
+
+export async function startPlayback(env: Env): Promise<void> {
+  const playlistId = env.SPOTIFY_PLAYLIST_ID
+
+  const response = await spotifyFetch(
+    'https://api.spotify.com/v1/me/player/play',
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ context_uri: `spotify:playlist:${playlistId}` }),
+    },
+    env
+  )
+
+  if (!response.ok) {
+    throw new Error(`startPlayback failed: ${response.status}`)
+  }
+}

@@ -1,6 +1,6 @@
 # mesprefs - Spotify Playlist Manager
 
-My son always askes to add/remove the currently playing track to/from his Spotify playlist. I decided to automate this process and it started with this simple API. It runs on a Cloudflare Workers using Hono . 
+When we listen to music at home, my son always asks to add/remove the currently playing track to/from his Spotify playlist of favorites. I decided to automate this process and it started with this simple little service that runs as a small public API. It runs on a Cloudflare Workers using Hono. At home, I use HomeAssitant to send those calls from a small remote control, and have a lamp and a speaker give confirmation when the track is added/removed.
 
 ## Setup
 
@@ -13,7 +13,7 @@ My son always askes to add/remove the currently playing track to/from his Spotif
    - Create a Spotify app at https://developer.spotify.com/dashboard
    - Get `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`
    - Perform OAuth flow to get `SPOTIFY_REFRESH_TOKEN` (scopes: `user-read-currently-playing`, `playlist-modify-public`, `playlist-modify-private`)
-   - Get your target playlist ID from Spotify
+   - Get your target playlist ID from Spotify. You can use the Spotify Web app and get it from the URL, or use the /playlists endpoint of this service.
 
 3. **Set local environment variables** in `.dev.vars`:
    ```

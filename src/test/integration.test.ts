@@ -6,6 +6,7 @@ import { healthHandler } from '../routes/health'
 import { currentHandler } from '../routes/current'
 import { addHandler } from '../routes/add'
 import { removeHandler } from '../routes/remove'
+import { playHandler } from '../routes/play'
 import { bearerAuth } from '../middleware/auth'
 
 const mockEnv: Env = {
@@ -209,6 +210,69 @@ describe('API Integration Tests', () => {
       expect(data.error).toBe('No track currently playing')
     })
 
+  })
+
+  describe('Play endpoint', () => {
+    const app = new Hono<{ Bindings: Env }>()
+    app.use(async (c, next) => {
+      c.env = mockEnv
+      await next()
+    })
+    app.post('/play', bearerAuth, playHandler)
+    const client = testClient(app)
+
+    it('returns 401 without auth', async () => {
+      const res = await client.play.$post()
+      expect(res.status).toBe(401)
+    })
+
+    it('starts playback successfully', async () => {
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            access_token: 'token',
+            expires_in: 3600,
+            token_type: 'Bearer',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 204,
+        })
+
+      const res = await client.play.$post({}, {
+        headers: { Authorization: 'Bearer test-token' },
+      })
+      expect(res.status).toBe(200)
+
+      const data = await res.json()
+      expect(data.success).toBe(true)
+    })
+
+    it('returns 502 on Spotify API error', async () => {
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            access_token: 'token',
+            expires_in: 3600,
+            token_type: 'Bearer',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 403,
+        })
+
+      const res = await client.play.$post({}, {
+        headers: { Authorization: 'Bearer test-token' },
+      })
+      expect(res.status).toBe(502)
+
+      const data = await res.json()
+      expect(data.error).toBe('Spotify API error')
+    })
   })
 
   describe('404 handling', () => {

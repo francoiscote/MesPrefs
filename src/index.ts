@@ -7,6 +7,7 @@ import { currentHandler } from './routes/current'
 import { playlistsHandler } from './routes/playlists'
 import { addHandler } from './routes/add'
 import { removeHandler } from './routes/remove'
+import { playHandler } from './routes/play'
 import { loginHandler, callbackHandler } from './routes/auth'
 
 const app = new Hono<{ Bindings: Env }>()
@@ -23,6 +24,7 @@ protected_.get('/current', currentHandler)
 protected_.get('/playlists', playlistsHandler)
 protected_.post('/add', addHandler)
 protected_.post('/remove', removeHandler)
+protected_.post('/play', playHandler)
 protected_.get('/auth/login', loginHandler)
 
 app.route('/', protected_)

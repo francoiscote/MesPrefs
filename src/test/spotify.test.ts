@@ -4,6 +4,7 @@ import {
   checkTrackInPlaylist,
   addTrackToPlaylist,
   removeTrackFromPlaylist,
+  startPlayback,
 } from '../lib/spotify'
 import { Env } from '../lib/types'
 
@@ -265,6 +266,44 @@ describe('Spotify service', () => {
       await expect(
         removeTrackFromPlaylist('spotify:track:123', mockEnv)
       ).resolves.toBeUndefined()
+    })
+  })
+
+  describe('startPlayback', () => {
+    it('starts playback successfully', async () => {
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            access_token: 'token',
+            expires_in: 3600,
+            token_type: 'Bearer',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 204,
+        })
+
+      await expect(startPlayback(mockEnv)).resolves.toBeUndefined()
+    })
+
+    it('throws on API error', async () => {
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            access_token: 'token',
+            expires_in: 3600,
+            token_type: 'Bearer',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 403,
+        })
+
+      await expect(startPlayback(mockEnv)).rejects.toThrow('startPlayback failed: 403')
     })
   })
 })
