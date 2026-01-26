@@ -17,8 +17,8 @@ app.use(logger());
 // Public routes
 app.get("/", landingHandler);
 app.get("/health", healthHandler);
-app.get("/auth/callback", callbackHandler);
 
+app.get("/api/auth/callback", callbackHandler);
 // Protected routes
 const protected_ = new Hono<{ Bindings: Env }>();
 protected_.use("*", bearerAuth, rateLimit);
@@ -29,7 +29,7 @@ protected_.post("/remove", removeHandler);
 protected_.post("/play", playHandler);
 protected_.get("/auth/login", loginHandler);
 
-app.route("/", protected_);
+app.route("/api/", protected_);
 
 // 404 handler
 app.notFound(() => new Response("Not Found", { status: 404 }));
