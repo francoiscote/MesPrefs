@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@layer base {
+	body {
+		color: var(--color-teal-950);
+	}
+}
+
 /* Custom styles */
 @layer components {
 	.gradient-bg {
@@ -39,4 +45,5 @@
 
 @theme {
 	--font-sans: "Frama", sans-serif;
+
 }
