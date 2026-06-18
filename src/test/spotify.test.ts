@@ -14,6 +14,12 @@ const mockEnv: Env = {
 	SPOTIFY_CLIENT_SECRET: "test-secret",
 	SPOTIFY_REFRESH_TOKEN: "test-refresh-token",
 	SPOTIFY_PLAYLIST_ID: "test-playlist-id",
+	SPOTIFY_REDIRECT_URI: "https://example.com/callback",
+	MESPREFS: {
+		get: async () => null,
+		put: async () => undefined,
+		delete: async () => undefined,
+	} as unknown as KVNamespace,
 };
 
 describe("Spotify service", () => {
@@ -33,7 +39,7 @@ describe("Spotify service", () => {
 				} as unknown as KVNamespace,
 			};
 
-			global.fetch = vi.fn().mockResolvedValueOnce({
+			globalThis.fetch = vi.fn().mockResolvedValueOnce({
 				ok: false,
 				status: 400,
 				json: async () => ({
@@ -47,11 +53,11 @@ describe("Spotify service", () => {
 			);
 			expect(del).toHaveBeenCalledWith("spotify_refreshToken");
 			// No retry: only the token request was made.
-			expect(global.fetch).toHaveBeenCalledTimes(1);
+			expect(globalThis.fetch).toHaveBeenCalledTimes(1);
 		});
 
 		it("throws generic error on other token failures", async () => {
-			global.fetch = vi.fn().mockResolvedValueOnce({
+			globalThis.fetch = vi.fn().mockResolvedValueOnce({
 				ok: false,
 				status: 500,
 				json: async () => ({ error: "server_error" }),
@@ -71,7 +77,7 @@ describe("Spotify service", () => {
 				artists: [{ name: "Test Artist" }],
 			};
 
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -96,7 +102,7 @@ describe("Spotify service", () => {
 		});
 
 		it("returns null when status 204", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -116,7 +122,7 @@ describe("Spotify service", () => {
 		});
 
 		it("returns null when item is null", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -137,7 +143,7 @@ describe("Spotify service", () => {
 		});
 
 		it("returns null when item missing uri", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -163,7 +169,7 @@ describe("Spotify service", () => {
 
 	describe("checkTrackInPlaylist", () => {
 		it("returns true when track found on first page", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -189,7 +195,7 @@ describe("Spotify service", () => {
 		});
 
 		it("returns true when track found on subsequent page", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -230,7 +236,7 @@ describe("Spotify service", () => {
 		});
 
 		it("returns false when track not found", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -259,7 +265,7 @@ describe("Spotify service", () => {
 		});
 
 		it("throws on API error", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -290,7 +296,7 @@ describe("Spotify service", () => {
 
 	describe("addTrackToPlaylist", () => {
 		it("adds track successfully", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -313,7 +319,7 @@ describe("Spotify service", () => {
 
 	describe("removeTrackFromPlaylist", () => {
 		it("removes track successfully", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -336,7 +342,7 @@ describe("Spotify service", () => {
 
 	describe("startPlayback", () => {
 		it("starts playback successfully", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -356,7 +362,7 @@ describe("Spotify service", () => {
 		});
 
 		it("throws on API error", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,

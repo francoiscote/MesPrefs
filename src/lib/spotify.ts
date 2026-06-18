@@ -1,9 +1,9 @@
 import type {
 	CurrentlyPlayingResponse,
 	PlaylistTracksResponse,
-	SpotifyPlaylists,
 	SpotifyError,
 	SpotifyOAuthError,
+	SpotifyPlaylists,
 	SpotifyTokenResponse,
 	SpotifyTrack,
 } from "./types";

@@ -10,21 +10,27 @@ describe("bearerAuth middleware", () => {
 		SPOTIFY_CLIENT_SECRET: "test-secret",
 		SPOTIFY_REFRESH_TOKEN: "test-refresh",
 		SPOTIFY_PLAYLIST_ID: "test-playlist",
+		SPOTIFY_REDIRECT_URI: "https://example.com/callback",
+		MESPREFS: {
+			get: async () => null,
+			put: async () => undefined,
+			delete: async () => undefined,
+		} as unknown as KVNamespace,
 	};
 
-	const app = new Hono<{ Bindings: Env }>();
-	app.use(async (c, next) => {
-		c.env = mockEnv;
-		await next();
-	});
-	app.get("/protected", bearerAuth, (c) => c.json({ success: true }));
+	const app = new Hono<{ Bindings: Env }>()
+		.use(async (c, next) => {
+			c.env = mockEnv;
+			await next();
+		})
+		.get("/protected", bearerAuth, (c) => c.json({ success: true }));
 
 	const client = testClient(app);
 
 	it("returns 401 when no auth header", async () => {
 		const res = await client.protected.$get();
 		expect(res.status).toBe(401);
-		const data = await res.json();
+		const data = (await res.json()) as { error: string };
 		expect(data.error).toBe("Unauthorized");
 	});
 
@@ -56,7 +62,7 @@ describe("bearerAuth middleware", () => {
 			},
 		);
 		expect(res.status).toBe(200);
-		const data = await res.json();
+		const data = (await res.json()) as { success: true };
 		expect(data.success).toBe(true);
 	});
 

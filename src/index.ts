@@ -52,6 +52,3 @@ app.route("/api/", protected_);
 app.notFound(() => new Response("Not Found", { status: 404 }));
 
 export default app;
-app.notFound(() => new Response("Not Found", { status: 404 }));
-
-export default app;

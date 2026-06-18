@@ -1,5 +1,5 @@
 import type { Context } from "hono";
-import { html } from "hono/html";
+import { html, raw } from "hono/html";
 import css from "../style.css?inline";
 
 const translations = {
@@ -89,7 +89,7 @@ export async function landingHandler(ctx: Context<{ Bindings: Env }>) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <title>${t.title}</title>
-        <style>${html(css)}</style>
+        <style>${raw(css)}</style>
       </head>
       <body class="gradient-bg min-h-screen">
         <!-- Top nav -->
@@ -141,7 +141,7 @@ export async function landingHandler(ctx: Context<{ Bindings: Env }>) {
               <span>📖</span> ${t.storyTitle}
             </h2>
             <p class="text-lg text-slate-600 leading-relaxed">
-              ${html(t.storyText)}
+              ${raw(t.storyText)}
             </p>
           </div>
 
@@ -192,7 +192,7 @@ export async function landingHandler(ctx: Context<{ Bindings: Env }>) {
               </li>
               <li class="flex items-start gap-3">
                 <span class="text-yellow-600 text-2xl">🏠</span>
-                <span>${html(t.feature4)}</span>
+                <span>${raw(t.feature4)}</span>
               </li>
             </ul>
           </div>

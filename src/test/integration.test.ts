@@ -14,6 +14,12 @@ const mockEnv: Env = {
 	SPOTIFY_CLIENT_SECRET: "test-secret",
 	SPOTIFY_REFRESH_TOKEN: "test-refresh",
 	SPOTIFY_PLAYLIST_ID: "test-playlist",
+	SPOTIFY_REDIRECT_URI: "https://example.com/callback",
+	MESPREFS: {
+		get: async () => null,
+		put: async () => undefined,
+		delete: async () => undefined,
+	} as unknown as KVNamespace,
 };
 
 describe("API Integration Tests", () => {
@@ -22,8 +28,7 @@ describe("API Integration Tests", () => {
 	});
 
 	describe("Health endpoint", () => {
-		const app = new Hono<{ Bindings: Env }>();
-		app.get("/health", healthHandler);
+		const app = new Hono<{ Bindings: Env }>().get("/health", healthHandler);
 		const client = testClient(app);
 
 		it("returns 200 with ok status", async () => {
@@ -37,12 +42,12 @@ describe("API Integration Tests", () => {
 	});
 
 	describe("Current endpoint", () => {
-		const app = new Hono<{ Bindings: Env }>();
-		app.use(async (c, next) => {
-			c.env = mockEnv;
-			await next();
-		});
-		app.get("/current", bearerAuth, currentHandler);
+		const app = new Hono<{ Bindings: Env }>()
+			.use(async (c, next) => {
+				c.env = mockEnv;
+				await next();
+			})
+			.get("/current", bearerAuth, currentHandler);
 		const client = testClient(app);
 
 		it("returns 401 without auth", async () => {
@@ -51,7 +56,7 @@ describe("API Integration Tests", () => {
 		});
 
 		it("returns currently playing track", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -82,19 +87,21 @@ describe("API Integration Tests", () => {
 			);
 			expect(res.status).toBe(200);
 
-			const data = await res.json();
+			const data = (await res.json()) as {
+				track: { uri: string; name: string };
+			};
 			expect(data.track.uri).toBe("spotify:track:123");
 			expect(data.track.name).toBe("Test Song");
 		});
 	});
 
 	describe("Add endpoint", () => {
-		const app = new Hono<{ Bindings: Env }>();
-		app.use(async (c, next) => {
-			c.env = mockEnv;
-			await next();
-		});
-		app.post("/add", bearerAuth, addHandler);
+		const app = new Hono<{ Bindings: Env }>()
+			.use(async (c, next) => {
+				c.env = mockEnv;
+				await next();
+			})
+			.post("/add", bearerAuth, addHandler);
 		const client = testClient(app);
 
 		it("returns 401 without auth", async () => {
@@ -103,7 +110,7 @@ describe("API Integration Tests", () => {
 		});
 
 		it("returns 400 when no track currently playing", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -126,12 +133,12 @@ describe("API Integration Tests", () => {
 			);
 			expect(res.status).toBe(400);
 
-			const data = await res.json();
+			const data = (await res.json()) as { error: string };
 			expect(data.error).toBe("No track currently playing");
 		});
 
 		it("returns 409 when track already in playlist", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -177,18 +184,18 @@ describe("API Integration Tests", () => {
 			);
 			expect(res.status).toBe(409);
 
-			const data = await res.json();
+			const data = (await res.json()) as { error: string };
 			expect(data.error).toBe("Track already in playlist");
 		});
 	});
 
 	describe("Remove endpoint", () => {
-		const app = new Hono<{ Bindings: Env }>();
-		app.use(async (c, next) => {
-			c.env = mockEnv;
-			await next();
-		});
-		app.post("/remove", bearerAuth, removeHandler);
+		const app = new Hono<{ Bindings: Env }>()
+			.use(async (c, next) => {
+				c.env = mockEnv;
+				await next();
+			})
+			.post("/remove", bearerAuth, removeHandler);
 		const client = testClient(app);
 
 		it("returns 401 without auth", async () => {
@@ -197,7 +204,7 @@ describe("API Integration Tests", () => {
 		});
 
 		it("returns 400 when no track currently playing", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -220,18 +227,18 @@ describe("API Integration Tests", () => {
 			);
 			expect(res.status).toBe(400);
 
-			const data = await res.json();
+			const data = (await res.json()) as { error: string };
 			expect(data.error).toBe("No track currently playing");
 		});
 	});
 
 	describe("Play endpoint", () => {
-		const app = new Hono<{ Bindings: Env }>();
-		app.use(async (c, next) => {
-			c.env = mockEnv;
-			await next();
-		});
-		app.post("/play", bearerAuth, playHandler);
+		const app = new Hono<{ Bindings: Env }>()
+			.use(async (c, next) => {
+				c.env = mockEnv;
+				await next();
+			})
+			.post("/play", bearerAuth, playHandler);
 		const client = testClient(app);
 
 		it("returns 401 without auth", async () => {
@@ -240,7 +247,7 @@ describe("API Integration Tests", () => {
 		});
 
 		it("starts playback successfully", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -263,12 +270,12 @@ describe("API Integration Tests", () => {
 			);
 			expect(res.status).toBe(200);
 
-			const data = await res.json();
+			const data = (await res.json()) as { success: true };
 			expect(data.success).toBe(true);
 		});
 
 		it("returns 502 on Spotify API error", async () => {
-			global.fetch = vi
+			globalThis.fetch = vi
 				.fn()
 				.mockResolvedValueOnce({
 					ok: true,
@@ -291,19 +298,18 @@ describe("API Integration Tests", () => {
 			);
 			expect(res.status).toBe(502);
 
-			const data = await res.json();
+			const data = (await res.json()) as { error: string };
 			expect(data.error).toBe("Spotify API error");
 		});
 	});
 
 	describe("404 handling", () => {
-		const app = new Hono<{ Bindings: Env }>();
-		app.get("/health", healthHandler);
-		app.notFound(() => new Response("Not Found", { status: 404 }));
-		const client = testClient(app);
+		const app = new Hono<{ Bindings: Env }>()
+			.get("/health", healthHandler)
+			.notFound(() => new Response("Not Found", { status: 404 }));
 
 		it("returns 404 for unknown routes", async () => {
-			const res = await client.unknown.$get();
+			const res = await app.request("/unknown");
 			expect(res.status).toBe(404);
 		});
 	});

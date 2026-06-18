@@ -13,6 +13,12 @@ describe("rateLimit middleware", () => {
 		SPOTIFY_CLIENT_SECRET: "test-secret",
 		SPOTIFY_REFRESH_TOKEN: "test-refresh",
 		SPOTIFY_PLAYLIST_ID: "test-playlist",
+		SPOTIFY_REDIRECT_URI: "https://example.com/callback",
+		MESPREFS: {
+			get: async () => null,
+			put: async () => undefined,
+			delete: async () => undefined,
+		} as unknown as KVNamespace,
 	};
 
 	beforeEach(() => {
@@ -22,12 +28,12 @@ describe("rateLimit middleware", () => {
 
 	it("allows requests under limit", async () => {
 		// Create fresh app for this test
-		const app = new Hono<{ Bindings: Env }>();
-		app.use(async (c, next) => {
-			c.env = mockEnv;
-			await next();
-		});
-		app.get("/protected", rateLimit, (c) => c.json({ success: true }));
+		const app = new Hono<{ Bindings: Env }>()
+			.use(async (c, next) => {
+				c.env = mockEnv;
+				await next();
+			})
+			.get("/protected", rateLimit, (c) => c.json({ success: true }));
 		const client = testClient(app);
 
 		for (let i = 0; i < 5; i++) {
@@ -42,27 +48,27 @@ describe("rateLimit middleware", () => {
 	});
 
 	it("rejects request without Authorization header", async () => {
-		const app = new Hono<{ Bindings: Env }>();
-		app.use(async (c, next) => {
-			c.env = mockEnv;
-			await next();
-		});
-		app.get("/protected", rateLimit, (c) => c.json({ success: true }));
+		const app = new Hono<{ Bindings: Env }>()
+			.use(async (c, next) => {
+				c.env = mockEnv;
+				await next();
+			})
+			.get("/protected", rateLimit, (c) => c.json({ success: true }));
 		const client = testClient(app);
 
 		const res = await client.protected.$get();
 		expect(res.status).toBe(429);
-		const data = await res.json();
+		const data = (await res.json()) as { error: string };
 		expect(data.error).toBe("Too Many Requests");
 	});
 
 	it("different tokens have separate rate limits", async () => {
-		const app = new Hono<{ Bindings: Env }>();
-		app.use(async (c, next) => {
-			c.env = mockEnv;
-			await next();
-		});
-		app.get("/protected", rateLimit, (c) => c.json({ success: true }));
+		const app = new Hono<{ Bindings: Env }>()
+			.use(async (c, next) => {
+				c.env = mockEnv;
+				await next();
+			})
+			.get("/protected", rateLimit, (c) => c.json({ success: true }));
 		const client = testClient(app);
 
 		// Token 1: 2 requests
