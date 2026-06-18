@@ -38,7 +38,7 @@ export interface PlaylistTracksResponse {
   next?: string
 }
 
-export interface PlaylistsResponse {
+export interface SpotifyPlaylists {
   items: Array<{
     track: SpotifyPlaylist
   }>
@@ -46,9 +46,15 @@ export interface PlaylistsResponse {
   next?: string
 }
 
-export interface SpotifyErrorResponse {
+export interface SpotifyError {
   error: {
     status: number
     message: string
   }
+}
+
+// Token endpoint returns OAuth-style errors, not the API error shape above.
+export interface SpotifyOAuthError {
+  error: string
+  error_description?: string
 }

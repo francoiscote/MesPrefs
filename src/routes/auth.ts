@@ -71,6 +71,10 @@ export async function callbackHandler(c: Context<{ Bindings: Env }>) {
   await c.env.MESPREFS?.put('spotify_refreshToken', data.refresh_token)
   const expiry = Date.now() + data.expires_in * 1000
   await c.env.MESPREFS?.put('spotify_accessToken_expiry', expiry.toString(10))
+  // Refresh tokens expire 6 months after authorization (Spotify 2026-06-18).
+  // The token carries no issuance date, so record it here. Only re-authorization
+  // resets this clock — refreshing the access token does not extend it.
+  await c.env.MESPREFS?.put('spotify_refreshToken_issuedAt', Date.now().toString(10))
 
   return c.text('Auth successful. Tokens stored.')
 }
